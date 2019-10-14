@@ -24,7 +24,7 @@ WHERE Title = "Sales Support Agent";
 --
 --5. unique_invoice_countries.sql: Provide a query showing a unique/distinct list of billing countries from the Invoice table.
 --
-SELECT DISTINCT BillingCountry
+SELECT DISTINCT (BillingCountry)
 FROM Invoice;
 
 --6. sales_agent_invoices.sql: Provide a query that shows the invoices associated with each sales agent. The resultant table should 
@@ -54,7 +54,7 @@ GROUP BY SUBSTR(InvoiceDate, 0,5);
 
 --9. total_sales_{year}.sql: What are the respective total sales for each of those years?
 --
-SELECT SUBSTR(InvoiceDate, 0,5) Total, Round(SUM(Total),2)
+SELECT SUBSTR(InvoiceDate, 0,5) Year,"$" || Round(SUM(Total), 2) AS [Total Sales]
 FROM Invoice 
 WHERE SUBSTR(InvoiceDate, 0,5) LIKE ("2009%") OR SUBSTR(InvoiceDate, 0,5) LIKE ("2011%")
 GROUP BY SUBSTR(InvoiceDate, 0,5);
@@ -97,7 +97,7 @@ GROUP BY i.BillingCountry;
 
 --15. playlists_track_count.sql: Provide a query that shows the total number of tracks in each playlist. The Playlist name should be include on the resulant table.
 --
-SELECT p.PlaylistId, t.TrackId, COUNT(*), t.Name
+SELECT p.PlaylistId, t.TrackId, COUNT(*), t.Name AS "Track Name"
 FROM PlaylistTrack p
 JOIN Track t
 ON t.TrackId = p.TrackId
@@ -116,15 +116,21 @@ ON g.GenreId = t.GenreId;
 
 --17. invoices_line_item_count.sql: Provide a query that shows all Invoices but includes the # of invoice line items.
 --
-SELECT i.invoice AS [Invoices], il.invoiceLine AS [InvoiceLine Items]
-FROM  Invoice i
-JOIN InvoiceLine il 
+SELECT (i.InvoiceId) AS [Invoices], (il.InvoiceLineId) AS [Invoice Line Items]
+FROM  InvoiceLine il
+JOIN Invoice i
 ON i.InvoiceId = il.InvoiceId;
-
-
 
 --18. sales_agent_total_sales.sql: Provide a query that shows total sales made by each sales agent.
 --
+SELECT c.SupportRepId,e.FirstName || ' ' || e.LastName AS [Employee Name], "$" || ROUND(SUM(i.Total),2) AS "Total Sales"
+FROM Customer c
+JOIN Invoice i
+ON c.CustomerId = i.CustomerId
+JOIN Employee e 
+ON e.EmployeeId = c.SupportRepId
+GROUP BY c.SupportRepId;
+
 --19. top_2009_agent.sql: Which sales agent made the most in sales in 2009?
 --What is the core info you are trying to gather and the supporting info to get the core info. 
 --Hint: Use the MAX function on a subquery.
@@ -149,9 +155,15 @@ FROM
 		e.FirstName || ' ' || e.LastName,
 		InvoiceYear ) AS Sales;
 
-
 --
 --20. top_agent.sql: Which sales agent made the most in sales over all?
+SELECT c.SupportRepId,e.FirstName || ' ' || e.LastName AS [Employee Name], "$" || ROUND(SUM(i.Total),2) AS "Total Sales"
+FROM Customer c
+JOIN Invoice i
+ON c.CustomerId = i.CustomerId
+JOIN Employee e 
+ON e.EmployeeId = c.SupportRepId
+GROUP BY [Employee Name];
 --
 --21. sales_agent_customer_count.sql: Provide a query that shows the count of customers assigned to each sales agent.
 --
@@ -165,15 +177,43 @@ SELECT
  WHERE
  	e.Title = 'Sales Support Agent'
  GROUP BY 
- 	e.FirstName,
- 	e.LastName;
+ 	[EmployeeName];
 
 --22. sales_per_country.sql: Provide a query that shows the total sales per country.
+SELECT i.BillingCountry, "$" || ROUND(SUM(i.Total),2) AS [Total Sales]
+FROM Invoice i
+GROUP BY i.BillingCountry;
+
 --
 --23. top_country.sql: Which country's customers spent the most?
---
+--NEED ANSWER
+SELECT i.BillingCountry, c.FirstName || ' '|| c.LastName AS [Customer Name], ROUND(SUM(i.Total),2)
+FROM Invoice i 
+JOIN Customer c
+ON c.CustomerId = i.CustomerId
+GROUP BY i.Total
+ORDER BY [Customer Name];
+
 --24. top_2013_track.sql: Provide a query that shows the most purchased track of 2013.
---
+--NEED ANSWER
+SELECT t.TrackId, t.Name, il.Quantity, SUBSTR(i.InvoiceDate,0,5)
+FROM InvoiceLine il 
+JOIN Track t
+ON t.TrackId = il.TrackId
+JOIN Invoice i 
+ON i.InvoiceId = il.InvoiceId
+WHERE SUBSTR(i.InvoiceDate,0,5) = "2013"
+GROUP BY t.Name;
+
+SELECT il.Quantity, t.Name
+FROM InvoiceLine il 
+JOIN Track t
+ON t.TrackId = il.TrackId
+JOIN Invoice i 
+ON i.InvoiceId = il.InvoiceId
+ORDER BY t.Name;
+
+
 --25. top_5_tracks.sql: Provide a query that shows the top 5 most purchased tracks over all.
 --
 SELECT 
@@ -191,4 +231,5 @@ LIMIT 5;
 
 --26. top_3_artists.sql: Provide a query that shows the top 3 best selling artists.
 --
+
 --27. top_media_type.sql: Provide a query that shows the most purchased Media Type.
